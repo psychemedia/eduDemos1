@@ -14,6 +14,7 @@ workingdata=DECC.overall.energy
 colnames(workingdata)=c('Sector','source','target','value')
 
 #Now let's create a Sankey diagram
+##http://ramnathv.github.io/rCharts/
 require(rCharts)
 
 #Download and unzip @timelyportfolio's Sankey/rCharts package
