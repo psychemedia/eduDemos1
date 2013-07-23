@@ -84,9 +84,11 @@ sankeyPlot(energyfull)
 
 #How much of each energy type does each sector use
 enduseBySector=aggregate(value ~ Sector + Enduse, DECC.overall.energy, sum)
-colnames(energyType)=c('source','target','value')
+colnames(enduseBySector)=c('source','target','value')
+sankeyPlot(enduseBySector)
 
-sankeyPlot(energyType)
+colnames(enduseBySector)=c('target','source','value')
+sankeyPlot(enduseBySector)
 
 #How much of each energy type is associated with each enduse
 energyByEnduse=aggregate(value ~ EnergyType + Enduse, DECC.overall.energy, sum)
