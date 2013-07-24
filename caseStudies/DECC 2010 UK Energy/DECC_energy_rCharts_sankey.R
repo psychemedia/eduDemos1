@@ -22,12 +22,14 @@ require(rCharts)
 
 sankeyPlot <- rCharts$new()
 
-#We need to tell R where the Sankey library is.
-#I put it as a subdirectory to my current working directory (.)
-sankeyPlot$setLib('./rCharts_d3_sankey-gh-pages/')
+##We need to tell R where the Sankey library is.
+##I put it as a subdirectory to my current working directory (.)
+#sankeyPlot$setLib('./rCharts_d3_sankey-gh-pages/')
+##We also need to point to an HTML template page
+#sankeyPlot$setTemplate(script = "./rCharts_d3_sankey-gh-pages/layouts/chart.html")
 
-#We also need to point to an HTML template page
-sankeyPlot$setTemplate(script = "./rCharts_d3_sankey-gh-pages/layouts/chart.html")
+#Alternatively,remove the local dependency and pull the library in directly
+sankeyPlot$setLib('http://timelyportfolio.github.io/rCharts_d3_sankey')
 
 sankeyPlot$set(
   data = workingdata,
@@ -96,3 +98,15 @@ colnames(energyByEnduse)=c('source','target','value')
 
 sankeyPlot(energyByEnduse)
 
+
+#This routine makes it easier to get the data for plotting as a Sankey diagram
+#Select the source, target and value column names explicitly to generate a dataframe containing
+#just those columns, appropriately named.
+sankeyData=function(df,colsource='source',coltarget='target',colvalue='value'){
+  sankey.df=subset(df,select=c(colsource,coltarget,colvalue))
+  colnames(sankey.df)=c('source','target','value')
+  sankey.df
+}
+#For example:
+data.sdf=sankeyData(DECC.overall.energy,'Sector','EnergyType','value')
+data.sdf
