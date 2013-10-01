@@ -1,0 +1,107 @@
+Isle of Wight Employment Stats
+========================================================
+
+This is an example of pulling down jobless figures from nomisweb for the Isle of Wight.
+
+Provided as a demonstrator for OnTheWight by Tony Hirst, (Computing and Communications Department, The Open University, and the Open Knowledge Foundation).
+
+```{r echo=FALSE, message=FALSE}
+#Package loading
+list.of.packages <- c("XML", "RCurl", "ggplot2", "xtable")
+new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+if(length(new.packages)) install.packages(new.packages)
+
+library(XML)
+library(RCurl)
+library(ggplot2)
+library(xtable)
+```
+```{r echo=FALSE, message=FALSE}
+#Utility functions
+commaReplace = function(node) {
+  val = xmlValue(node)
+  ans = gsub(",", "", val)
+  if(is.na(ans))
+    val
+  else
+    ans
+}
+
+comma=function(txt){paste(txt,',',sep='')}
+```
+```{r echo=FALSE, message=FALSE}
+#Total stats loader
+#total1, male1, female1
+tt=postForm("https://www.nomisweb.co.uk/reports/lmp/la/2038431803/subreports/jsa_time_series/report.aspx", .encoding='utf-8', pivot="total1")
+tables <- readHTMLTable(tt,stringsAsFactors = FALSE,elFun=commaReplace ) #encoding = "UTF-8")
+nn=gsub('([\n\t\r])','',names(tables$`NULL`))
+names(tables$`NULL`)=nn
+ud=tables$`NULL`
+ud['Isle of Wight']=lapply(ud['Isle of Wight'], function(x) as.integer(x))
+ud['South East(%)']=lapply(ud['South East(%)'], function(x) as.numeric(x))
+ud['Great Britain(%)']=lapply(ud['Great Britain(%)'], function(x) as.numeric(x))
+#We need to create a date. IF we just the 1/MON/YEAR the chart labeling maybe looks better than the possibly more correct lastDayOfMonth/MON/YEAR? Or use middle of month (15th, say?)?
+ud['tDate']=lapply(ud['Date'], function(x) as.Date(paste(28,x),"%d %b %Y"))
+```
+
+The most recent figures:
+
+```{r results='asis', message=FALSE, echo=FALSE}
+print(xtable(ud[nrow(ud),c(1,2,4,5)]),include.rownames=FALSE,type='html')
+```
+
+The previous figures:
+
+```{r results='asis', message=FALSE, echo=FALSE}
+print(xtable(ud[nrow(ud)-1,c(1,2,4,5)]),include.rownames=FALSE,type='html')
+```
+
+Last three months' figures:
+```{r results='asis', message=FALSE, echo=FALSE}
+df.tmp=ud[(nrow(ud)-2):nrow(ud),c(1,2,4,5)]
+print(xtable(df.tmp),include.rownames=FALSE,type='html')
+```
+
+A little bit of machine generated explanatory text:
+
+```{r results='asis', message=FALSE, echo=FALSE, comment='' }
+txt="The total number of people claiming Job Seeker's Allowance (JSA) on the Isle of Wight in"
+txt=paste(txt,format(ud[nrow(ud),]$tDate,'%B'),'was',ud[nrow(ud),'Isle of Wight'])
+txt=comma(txt)
+
+jsa.lm=ud[nrow(ud)-1,'Isle of Wight']
+jsa.diff.m=ud[nrow(ud),'Isle of Wight']-jsa.lm
+if (jsa.diff.m>0){
+  txt=paste(txt,'up',jsa.diff.m,'from',jsa.lm)
+} else if (jsa.diff.m<0) {
+  txt=paste(txt,'down',abs(jsa.diff.m),'from',jsa.lm)
+} else { txt=paste(txt,'the same as') }
+txt=paste(txt,'in',format(ud[nrow(ud)-1,]$tDate,'%B, %Y,'))
+
+txt=paste(txt,'and')
+jsa.ly=ud[nrow(ud)-12,'Isle of Wight']
+jsa.diff.y=ud[nrow(ud),'Isle of Wight']-jsa.ly
+if (jsa.diff.y>0){
+  txt=paste(txt,'up',jsa.diff.y,'from',jsa.ly)
+} else if (jsa.diff.y<0) {
+  txt=paste(txt,'down',abs(jsa.diff.y),'from',jsa.ly)
+} else { txt=paste(txt,'the same as') }
+txt=paste(txt,'in',format(ud[nrow(ud)-12,]$tDate,'%B, %Y.'))
+
+cat(txt)
+```
+
+
+```{r fig.width=7, fig.height=6, message=FALSE, echo=FALSE}
+ud$dy <- unlist(format(ud["tDate"],'%Y'))
+ud$dm <- unlist(format(ud["tDate"],'%b'))
+ud$dm=factor(ud$dm)
+ud$dm<- factor(ud$dm, levels = month.abb)
+
+ggplot(ud)+geom_line(aes_string(x='dy',y='`Isle of Wight`',group='dm'))+facet_grid(~dm)+theme(axis.text.x = element_text(angle = 90, hjust = 1))
+#reorder(variable, value)
+```
+
+```{r fig.width=7, fig.height=6, message=FALSE, echo=FALSE}
+ggplot(ud[(nrow(ud)-11):nrow(ud),])+geom_line(aes_string(x='tDate',y='`Isle of Wight`'))+theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
