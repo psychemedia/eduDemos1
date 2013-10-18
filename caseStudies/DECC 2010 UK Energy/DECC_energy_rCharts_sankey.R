@@ -1,6 +1,6 @@
 #Inspired by @timelyportfolio - All My Roads Lead Back to Finance–PIMCO Sankey
 #http://timelyportfolio.blogspot.co.uk/2013/07/all-my-roads-lead-back-to-financepimco.html
-
+DECC.overall.energy <- read.csv("~/code/Rcode/eduDemos1/caseStudies/DECC 2010 UK Energy/DECC-overall-energy.csv")
 
 #Here's the baseline column naming for the dataset
 colnames(DECC.overall.energy)=c('Sector','Enduse','EnergyType','value')
@@ -15,6 +15,8 @@ colnames(workingdata)=c('Sector','source','target','value')
 
 #Now let's create a Sankey diagram
 ##http://ramnathv.github.io/rCharts/
+#require(devtools)
+#install_github('rCharts', 'ramnathv')
 require(rCharts)
 
 #Download and unzip @timelyportfolio's Sankey/rCharts package
