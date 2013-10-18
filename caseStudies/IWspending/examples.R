@@ -60,12 +60,27 @@ commonPayments=function(df,bcol,commonAmounts){
 }
 xx=commonPayments(iw,"Amount",ca$Var1)
 
+#Let's combine those
+commonReport=function(df,bcol="Amount"){
+  ca.list=commonAmounts(df)
+  commonPayments(df,bcol,ca.list$Var1)
+}
+
+cx=commonReport(iw)
+
 #R does pivot tables...
 #We can also run summary statistics over those common payment rows.
 zz1=aggregate(index ~ ServiceArea + Amount, data =xx, FUN="length")
+head(arrange(zz1,-index))
+
 zz2=aggregate(index ~ ServiceArea +ExpensesType+ Amount, data =xx, FUN="length")
+head(arrange(zz2,-index))
+
 zz3=aggregate(index ~ SupplierName+ Amount, data =xx, FUN="length")
+head(arrange(zz3,-index))
+
 zz4=aggregate(index ~ SupplierNameClustered+ Amount, data =xx, FUN="length")
+head(arrange(zz4,-index))
 
 
 overpayments=function(df,fcol,bcol='Amount',num=5){
@@ -99,5 +114,12 @@ balanced.items=function(df,bcol){
 dse=balanced.items(se,'Amount')
 
 
+for (i in ll) {
+  g=ggplot(subset(iw,Directorate==i))+geom_line(aes(x=Date,y=cumAmount))+ggtitle(i)
+  print(g)
+}
 
+iw=ddply(iw,.(Directorate),mutate,dirCumAmount=cumsum(Amount))
+
+ggplot(iw)+geom_line(aes(x=Date,y=dirCumAmount,group=Directorate,col=Directorate))
 
